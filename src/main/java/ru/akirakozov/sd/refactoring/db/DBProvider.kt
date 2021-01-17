@@ -14,7 +14,7 @@ open class DBProvider(private val url: String) {
     }
 
     fun initDB(products: List<Product> = emptyList()) {
-        this.withStatement { statement ->
+        withStatement { statement ->
             statement.executeUpdate(
                 """
                 |CREATE TABLE IF NOT EXISTS Product (
@@ -26,7 +26,7 @@ open class DBProvider(private val url: String) {
             )
         }
 
-        this.withStatement { statement ->
+        withStatement { statement ->
             statement.executeUpdate("DELETE FROM Product")
         }
 
@@ -66,7 +66,7 @@ open class DBProvider(private val url: String) {
     }
 
     fun getCount() = withStatement { statement ->
-        val resultSet = statement.executeQuery("SELECT COUNT(*) FROM PRODUCT")
+        val resultSet = statement.executeQuery("SELECT COUNT(*) FROM Product")
 
         if (resultSet.next()) resultSet.getInt(1) else 0
     }
