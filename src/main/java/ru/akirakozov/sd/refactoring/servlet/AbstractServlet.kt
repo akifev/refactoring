@@ -1,46 +1,37 @@
-package ru.akirakozov.sd.refactoring.servlet;
+package ru.akirakozov.sd.refactoring.servlet
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.ResultSet;
-import java.lang.Void;
-import java.util.function.*;
-
-import ru.akirakozov.sd.refactoring.servlet.DBHandler;
+import ru.akirakozov.sd.refactoring.db.DBProvider
+import ru.akirakozov.sd.refactoring.db.entity.Product
+import ru.akirakozov.sd.refactoring.db.testDBUrl
+import ru.akirakozov.sd.refactoring.html.TemplateHTML.h1
+import ru.akirakozov.sd.refactoring.html.TemplateHTML.item
+import ru.akirakozov.sd.refactoring.html.TemplateHTML.itemsPage
+import ru.akirakozov.sd.refactoring.html.TemplateHTML.numberOfProductsPage
+import ru.akirakozov.sd.refactoring.html.TemplateHTML.summaryPricePage
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 /**
  * @author volhovm
  */
-public class ServletCommon {
-    public static void dumpItems(HttpServletResponse response, ResultSet rs, String title)
-        throws IOException, SQLException {
-        response.getWriter().println("<html><body>")                         ;
-        response.getWriter().println("<h1>" + title + ": </h1>")             ;
-        while (rs.next())                                                    {
-            String name = rs.getString("name")                               ;
-            int price  = rs.getInt("price")                                  ;
-            response.getWriter().println(name + "\t" + price + "</br>")      ;}
-        response.getWriter().println("</body></html>")                       ;
+abstract class AbstractServlet : HttpServlet() {
+    val dbProvider = DBProvider(testDBUrl)
+
+    fun dumpProducts(response: HttpServletResponse, products: List<Product>, title: String) {
+        response.writer.write(itemsPage(h1(title), products.map { item(it.name, it.price.toString()) }))
     }
 
-    public static void doGoodies(HttpServletResponse response, DBHandler<Statement> handler) {
-        try {
-            try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-                Statement stmt = c.createStatement();
-                handler.apply(stmt);
-                stmt.close();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    fun dumpSummaryPrice(response: HttpServletResponse, summaryPrice: Int) {
+        response.writer.write(summaryPricePage(summaryPrice.toString()))
+    }
 
-        response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);
+    fun dumpNumberOfProducts(response: HttpServletResponse, numberOfProducts: Int) {
+        response.writer.write(numberOfProductsPage(numberOfProducts.toString()))
+    }
+
+    override fun doGet(request: HttpServletRequest, response: HttpServletResponse) {
+        response.contentType = "text/html";
+        response.status = HttpServletResponse.SC_OK;
     }
 }
